@@ -23,7 +23,7 @@ int parse_url(const char *url, url_info *info) {
         strcpy(info->path, "/");
     }
 
-    // verifica se tem porta - por ex: localhost:8080 
+    // verifica se tem porta 
     char *colon = strchr(host_port, ':');
     if (colon) {
         *colon = '\0';

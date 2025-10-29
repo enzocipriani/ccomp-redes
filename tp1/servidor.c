@@ -8,9 +8,9 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#define PORTA 5050
+#define PORTA 3000
 #define BUFFER_SIZE 4096
-#define SITE_DIR "/mnt/c/Users/enzocipriani/Documents/GitHub/meusite"
+#define SITE_DIR "/mnt/c/Users/e2tcode/Documents/GitHub/meusite"
 
 // ANSI para cores
 #define COR_VERDE   "\033[1;32m"
@@ -38,7 +38,7 @@ const char *obter_tipo_mime(const char *filename) {
     return "text/plain";
 }
 
-// formatar logs
+// formata logs
 void log_http(const char *status, const char *recurso, const char *cor) {
     char timestamp[64];
     obter_timestamp(timestamp, sizeof(timestamp));
