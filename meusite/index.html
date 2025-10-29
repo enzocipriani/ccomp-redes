@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Servidor Online - Enzo Cipriani</title>
+
+        <style>
+            body {
+                background-color: #1e1e1e;
+                color: #ffffff;
+                font-family: "Poppins", Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                overflow: hidden;   
+            }
+
+            main {
+                text-align: center;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+                color: #f5f5f5;
+                margin-top: 15px;
+                letter-spacing: 1px;
+            }
+
+            /* ======== ÍCONE ANIMADO ======== */
+            .status-icon {
+                width: 24px;
+                height: 24px;
+                background-color: #f4951f; /* Laranja principal */
+                border-radius: 50%;
+                display: inline-block;
+                box-shadow: 0 0 0 rgba(255, 123, 0, 0.4);
+                animation: pulse 1.5s infinite;
+                vertical-align: middle;
+            }
+
+            @keyframes pulse {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(255, 123, 0, 0.5);
+                }
+                70% {
+                    box-shadow: 0 0 0 15px rgba(255, 123, 0, 0);
+                }
+                100% {
+                    box-shadow: 0 0 0 0 rgba(255, 123, 0, 0);
+                }
+            }
+
+            .status-text {
+                color: #f4951f;
+                font-size: 1.4rem;
+                margin-top: 10px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                animation: fadein 1.5s ease-in-out;
+            }
+
+            @keyframes fadein {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <div class="status-text">
+                <span class="status-icon"></span>
+                <span>Servidor online</span>
+            </div>
+        </main>
+    </body>
+</html>
