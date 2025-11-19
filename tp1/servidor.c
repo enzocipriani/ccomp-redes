@@ -10,7 +10,7 @@
 
 #define PORTA 3000
 #define BUFFER_SIZE 4096
-#define SITE_DIR "/mnt/c/Users/e2tcode/Documents/GitHub/meusite"
+#define SITE_DIR "/mnt/c/Users/enzocipriani/Documents/GitHub/meusite"
 
 // ANSI para cores
 #define COR_VERDE   "\033[1;32m"
@@ -25,7 +25,7 @@ void obter_timestamp(char *dest, size_t tamanho) {
     strftime(dest, tamanho, "%d/%m/%Y %H:%M:%S", t);
 }
 
-// tipo do arquivo
+// verifica o tipo do arquivo
 const char *obter_tipo_mime(const char *filename) {
     const char *ext = strrchr(filename, '.');
     if (!ext) return "text/plain";
@@ -45,7 +45,6 @@ void log_http(const char *status, const char *recurso, const char *cor) {
     printf("%s[%s]%s  %s  (%s)\n", cor, status, COR_RESET, recurso, timestamp);
 }
 
-// enviar resposta para o txt
 void enviar_resposta(int cliente_fd, const char *caminho_completo, const char *recurso) {
     FILE *arquivo = fopen(caminho_completo, "rb");
     if (!arquivo) {
@@ -75,9 +74,11 @@ void enviar_resposta(int cliente_fd, const char *caminho_completo, const char *r
     log_http("200 OK", recurso, COR_VERDE);
 }
 
-// listar diretorio
-void listar_diretorio(int cliente_fd, const char *recurso) {
-    DIR *dir = opendir(SITE_DIR);
+void listar_diretorio(int cliente_fd, const char *caminho) {
+    char dir_path[2048];
+    snprintf(dir_path, sizeof(dir_path), "%s%s", SITE_DIR, caminho);
+
+    DIR *dir = opendir(dir_path);
     if (!dir) {
         perror("Erro ao abrir diretorio");
         return;
@@ -86,23 +87,39 @@ void listar_diretorio(int cliente_fd, const char *recurso) {
     const char *inicio =
         "HTTP/1.0 200 OK\r\n"
         "Content-Type: text/html\r\n\r\n"
-        "<html><body><h2>Arquivos disponiveis:</h2><ul>";
+        "<html><body><h2>Arquivos disponíveis:</h2><ul>";
+
     write(cliente_fd, inicio, strlen(inicio));
 
     struct dirent *ent;
     char linha[1024];
+
     while ((ent = readdir(dir)) != NULL) {
-        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) continue;
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0)
+            continue;
+
         snprintf(linha, sizeof(linha),
-                 "<li><a href=\"/%s\">%s</a></li>", ent->d_name, ent->d_name);
+            "<li><a href=\"%s/%s\">%s</a></li>",
+            caminho,
+            ent->d_name,
+            ent->d_name
+        );
+
         write(cliente_fd, linha, strlen(linha));
     }
 
     const char *fim = "</ul></body></html>";
     write(cliente_fd, fim, strlen(fim));
-    closedir(dir);
 
-    log_http("200 OK", recurso, COR_VERDE);
+    closedir(dir);
+    log_http("200 OK", caminho, COR_VERDE);
+}
+
+int eh_diretorio(const char *caminho) {
+    struct stat st;
+    if (stat(caminho, &st) == 0 && S_ISDIR(st.st_mode))
+        return 1;
+    return 0;
 }
 
 int main() {
@@ -148,20 +165,31 @@ int main() {
         printf(COR_AMARELA "\nRequisição recebida: %s %s (%s)\n" COR_RESET, metodo, caminho, timestamp);
 
         if (strcmp(metodo, "GET") == 0) {
-            if (strcmp(caminho, "/") == 0) {
-                char index_path[1024];
-                snprintf(index_path, sizeof(index_path), "%s/index.html", SITE_DIR);
+           if (strcmp(metodo, "GET") == 0) {
+
+            char caminho_completo[2048];
+            snprintf(caminho_completo, sizeof(caminho_completo),
+                    "%s%s", SITE_DIR, caminho);
+
+            // verifica se for diretorio
+            if (eh_diretorio(caminho_completo)) {
+
+                // e verifica se tem um index
+                char index_path[2048];
+                snprintf(index_path, sizeof(index_path),
+                        "%s%s/index.html", SITE_DIR, caminho);
+
                 struct stat st;
-                if (stat(index_path, &st) == 0)
+                if (stat(index_path, &st) == 0) {
                     enviar_resposta(cliente_fd, index_path, caminho);
-                else
+                } else {
                     listar_diretorio(cliente_fd, caminho);
+                }
+
             } else {
-                char caminho_completo[2048];
-                snprintf(caminho_completo, sizeof(caminho_completo),
-                         "%s%s", SITE_DIR, caminho);
                 enviar_resposta(cliente_fd, caminho_completo, caminho);
             }
+        }
         } else {
             const char *erro =
                 "HTTP/1.0 405 Method Not Allowed\r\n"
